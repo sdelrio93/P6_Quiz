@@ -93,46 +93,39 @@ exports.destroy = (req, res, next) => {
 
 //checking if tip user or admin is trying to modify
 exports.adminOrAuthorRequired = (req, res, next) =>{
-    const {tip, session} = req;
-
-    const isAuthor = tip.authorId === session.user.id;
-    const isAdmin = session.user.isAdmin;
+    const isAdmin = !!req.session.user.isAdmin;
+    const isAuthor = req.session.user.id === req.tip.authorId;
 
     if(isAdmin || isAuthor){
         next();
-    }else{
-        console.log('Prohibited operation: The logged in user is not the author of the quiz, nor an administrator.');
+    } else{
         res.send(403);
     }
-}
+};
 
-//GET /quizzes/tips/edit
-exports.edit = (req, res, next) => {        //tengo vista edit
+//GET /quizzes/:quizId/tips/:tipId/edit
+exports.edit = (req, res, next) => {
+    const{quiz,tip}=req;
+    res.render('tips/edit',{quiz, tip});
+};
 
-    const {tip, quiz} = req;
+// PUT /quizzes/:quizId/tips/:tipId
+exports.update = (req, res, next) => {
+    const{quiz, tip} = req;
+    tip.text =req.body.text;
 
-    res.render('tips/edit.ejs', {tip, quiz});
-}
-
-//PUT /quizzes/tips
-exports.update = (req, res ,next) => {      //no tengo vista update, vuelto a la pagina antes de editar
-
-    const {tip, body} = req;        //body es lo que escribo en el formulario que se identifica por su 'name'
-
-    tip.text = body.newtip;
-
-    tip.save({fields: ["text"]})
+    tip.save({fields: ["text", "accepted"]})
     .then(tip => {
-        req.flash('success', 'Tip edited successfully.');
-        res.redirect('/goback');
+        req.flash('success', 'Tip created successfully.');
+        res.redirect('/quizzes/', quiz.id);
     })
     .catch(Sequelize.ValidationError, error => {
         req.flash('error', 'There are errors in the form:');
         error.errors.forEach(({message}) => req.flash('error', message));
-        res.render('tips/edit', {tip});
+        res.render('quizzes/edit',{quiz});
     })
     .catch(error => {
-        req.flash('error', 'Error editing the Tip: ' + error.message);
+        req.flash('error', 'Error creating the new tip: ' + error.message);
         next(error);
-    });    
-}
+    });
+} 

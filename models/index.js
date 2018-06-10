@@ -9,7 +9,7 @@ const Sequelize = require('sequelize');
 // To use  Heroku Postgres data base:
 //    DATABASE_URL = postgres://user:passwd@host:port/database
 
-const url = process.env.DATABASE_URL || "sqlite:quizzes.sqlite";
+const url = process.env.DATABASE_URL || "sqlite:quiz.sqlite";
 
 const sequelize = new Sequelize(url);
 
@@ -25,6 +25,28 @@ sequelize.import(path.join(__dirname,'user'));
 // Session
 sequelize.import(path.join(__dirname,'session'));
 
+// Create tables
+/*sequelize.sync().then(() => sequelize.models.quiz.count()).then((count) => {	//sincronizo, en la base de datos existen datos? sino los creo
+	if (!count){
+		return sequelize.models.quiz.bulkCreate([
+					{ question: 'Capital de España', answer: 'Madrid'},
+					{ question: 'Capital de Francia', answer: 'Paris'},
+					{ question: 'Capital de Italia', answer: 'Roma'},
+					{ question: 'Capital de Rusia', answer: 'Moscu'}
+				]);
+			}
+})
+.catch( err => {
+	console.log(err);
+});*/
+
+sequelize.sync()
+.then(() => console.log('Data Bases created successfully'))
+.catch(error => {
+    console.log("Error creating the data base tables:", error);
+    process.exit(1);
+});
+
 
 // Relation between models
 
@@ -37,9 +59,8 @@ quiz.hasMany(tip);
 user.hasMany(quiz, {foreignKey: 'authorId'});
 quiz.belongsTo(user, {as: 'author', foreignKey: 'authorId'});
 
-// Relation 1-to-N between User and Tip:
+// Relation 1-to-N between User and Tips:
 user.hasMany(tip, {foreignKey: 'authorId'});
 tip.belongsTo(user, {as: 'author', foreignKey: 'authorId'});
-
 
 module.exports = sequelize;

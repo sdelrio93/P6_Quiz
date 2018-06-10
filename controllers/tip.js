@@ -18,20 +18,33 @@ exports.load = (req, res, next, tipId) => {
 };
 
 
+// GET /quizzes/:quizId/tips/new
+exports.new = (req, res, next) => {
+
+    const tip = {
+        text: ""
+    };
+
+    const {quiz} = req;
+
+    res.render('tips/new', {
+        tip,
+        quiz
+    });
+};
+
+
 // POST /quizzes/:quizId/tips
 exports.create = (req, res, next) => {
-
-    const authorId = req.session.user && req.session.user.id || 0;
-
  
     const tip = models.tip.build(
         {
             text: req.body.text,
-            quizId: req.quiz.id
-            authorId
+            quizId: req.quiz.id,
+            authorId: req.session.user && req.session.user.id || 0,                //added
         });
 
-    tip.save(authorId)
+    tip.save()
     .then(tip => {
         req.flash('success', 'Tip created successfully.');
         res.redirect("back");
@@ -77,4 +90,3 @@ exports.destroy = (req, res, next) => {
     })
     .catch(error => next(error));
 };
-

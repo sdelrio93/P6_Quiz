@@ -119,8 +119,18 @@ router.delete('/quizzes/:quizId(\\d+)',
 router.get('/quizzes/:quizId(\\d+)/play',  quizController.play);
 router.get('/quizzes/:quizId(\\d+)/check', quizController.check);
 
-router.get('/quizzes/randomplay', quizController.randomplay);           
-router.get('/quizzes/randomcheck/:quizId(\\d+)', quizController.randomcheck);   
+router.get('/quizzes/randomplay', quizController.randomplay);                   //p6    
+router.get('/quizzes/randomcheck/:quizId(\\d+)', quizController.randomcheck);   //p6
+//p8
+router.get('/quizzes/:quizId/tips/:tipId/edit', 
+    sessionController.loginRequired, 
+    tipController.adminOrAuthorRequired,
+    tipController.edit);
+//p8
+router.put('/quizzes/:quizId/tips/:tipId', 
+    sessionController.loginRequired, 
+    tipController.adminOrAuthorRequired,
+    tipController.update);  
 
 
 router.get('/quizzes/:quizId(\\d+)/tips/new',  sessionController.loginRequired,tipController.new);

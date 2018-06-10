@@ -93,39 +93,46 @@ exports.destroy = (req, res, next) => {
 
 //checking if tip user or admin is trying to modify
 exports.adminOrAuthorRequired = (req, res, next) =>{
-    const isAdmin = !!req.session.user.isAdmin;
-    const isAuthor = req.session.user.id === req.tip.authorId;
+    const {tip, session} = req;
+
+    const isAuthor = tip.authorId === session.user.id;
+    const isAdmin = session.user.isAdmin;
 
     if(isAdmin || isAuthor){
         next();
-    } else{
+    }else{
+        console.log('Prohibited operation: The logged in user is not the author of the quiz, nor an administrator.');
         res.send(403);
     }
-};
+}
 
-//GET /quizzes/:quizId/tips/:tipId/edit
-exports.edit = (req, res, next) => {
-    const{quiz,tip}=req;
-    res.render('tips/edit',{quiz, tip});
-};
+//GET /quizzes/tips/edit
+exports.edit = (req, res, next) => {        //tengo vista edit
 
-// PUT /quizzes/:quizId/tips/:tipId
-exports.update = (req, res, next) => {
-    const{quiz, tip} = req;
-    tip.text =req.body.text;
+    const {tip, quiz} = req;
 
-    tip.save({fields: ["text", "accepted"]})
+    res.render('tips/edit.ejs', {tip, quiz});
+}
+
+//PUT /quizzes/tips
+exports.update = (req, res ,next) => {      //no tengo vista update, vuelto a la pagina antes de editar
+
+    const {tip, body} = req;        //body es lo que escribo en el formulario que se identifica por su 'name'
+
+    tip.text = body.newtip;
+
+    tip.save({fields: ["text"]})
     .then(tip => {
-        req.flash('success', 'Tip created successfully.');
-        res.redirect('/quizzes/', quiz.id);
+        req.flash('success', 'Tip edited successfully.');
+        res.redirect('/goback');
     })
     .catch(Sequelize.ValidationError, error => {
         req.flash('error', 'There are errors in the form:');
         error.errors.forEach(({message}) => req.flash('error', message));
-        res.render('quizzes/edit',{quiz});
+        res.render('tips/edit', {tip});
     })
     .catch(error => {
-        req.flash('error', 'Error creating the new tip: ' + error.message);
+        req.flash('error', 'Error editing the Tip: ' + error.message);
         next(error);
-    });
-} 
+    });    
+}

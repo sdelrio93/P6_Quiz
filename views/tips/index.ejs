@@ -9,6 +9,9 @@
             <small> (by <%=tip.author ? tip.author.username : "Anonymous" %>) </small>
         </div>
         <% if (accepted || isAdmin || isQuizAuthor) { %>
+            <div>
+            <small> (by <%=tip.author ? tip.author.username : "Anonymous" %>) </small>
+            </div>
             <li>
                 <%= tip.text %>
                 
@@ -18,9 +21,15 @@
                     </a>
                 <% } %>
                 <% if (isAdmin || isQuizAuthor) { %>
+
+                    <a href="/quizzes/<%= quizId %>/tips/<%= tip.id %>/edit?_method=GET">
+                        <button>Edit</button>
+                    </a>
+
                     <a href="/quizzes/<%= quizId %>/tips/<%= tip.id %>?_method=DELETE">
                         <button>Delete</button>
                     </a>
+                    
                 <% } %>
             </li>
         <% } %>

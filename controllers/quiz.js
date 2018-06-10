@@ -2,7 +2,25 @@ const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 const {models} = require("../models");
 
+
 const paginate = require('../helpers/paginate').paginate;
+
+
+
+let puntuacion = 0;
+let toBeSolved = [];
+let recuperacion = [];
+let indice;
+
+models.quiz.findAll()
+    .each(quiz => {
+        toBeSolved.push(quiz.get({plain:true}));
+    })
+    .then(() =>{
+        recuperacion = toBeSolved.slice();
+    });
+
+
 
 // Autoload the quiz with id equals to :quizId
 exports.load = (req, res, next, quizId) => {
@@ -225,3 +243,59 @@ exports.check = (req, res, next) => {
         answer
     });
 };
+
+
+exports.randomplay = (req, res, next) => {
+
+    const {quiz, query} = req;
+    const answer = query.answer || '';
+    var len = toBeSolved.length;
+
+    let index = Math.floor(Math.random() * len);
+    indice = index;
+
+    res.render('quizzes/random_play', {
+        quiz : toBeSolved[index],
+        score : puntuacion,
+        answer
+    });
+};
+
+exports.randomcheck = (req, res, next) => {
+
+    const {quiz, query} = req;
+
+    const answer = query.answer || "";
+    const result = answer.toLowerCase().trim() === quiz.answer.toLowerCase().trim();
+
+    if(toBeSolved.length > 1){
+
+        if(result === true){
+            puntuacion++;
+            toBeSolved.splice(indice,1);
+            res.render('quizzes/random_result', {
+                score : puntuacion,
+                result,
+                answer
+            });
+        }else{
+            res.render('quizzes/random_result', {
+                score : puntuacion,
+                result,
+                answer
+            });
+            puntuacion = 0;
+            toBeSolved = recuperacion.slice();
+        }
+
+    }else{
+        puntuacion++;
+        res.render('quizzes/random_nomore', {score : puntuacion});
+        puntuacion = 0;
+        toBeSolved = recuperacion.slice();
+    }
+
+
+
+
+}; 
